@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CoreDent PMS - Design System
+   Dental Blue accent with clean, medical aesthetic
+   ============================================ */
+
+@layer base {
+  :root {
+    /* Core backgrounds - Clean white with soft gray */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+
+    /* Card surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    /* Popover surfaces */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Primary - Dental Blue */
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft blue-gray */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 215 25% 25%;
+
+    /* Muted elements */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent - Light dental blue */
+    --accent: 199 89% 95%;
+    --accent-foreground: 199 89% 35%;
+
+    /* Destructive - Error red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success - Medical green / Mint */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --success-accent: 142 76% 95%;
+
+    /* Warning - Amber / Coral */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-accent: 38 92% 95%;
+
+    /* Borders and inputs */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+
+    /* Border radius */
+    --radius: 0.75rem;
+
+    /* Chart colors */
+    --chart-1: 199 89% 48%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 0 84% 60%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 25%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 199 89% 95%;
+    --sidebar-accent-foreground: 199 89% 35%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 199 89% 48%;
+  }
+
+  .dark {
+    /* Dark mode - Professional dark theme */
+    --background: 215 28% 9%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 28% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 28% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary - Brighter dental blue for dark mode */
+    --primary: 199 89% 55%;
+    --primary-foreground: 215 28% 9%;
+
+    --secondary: 215 28% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 199 50% 20%;
+    --accent-foreground: 199 89% 70%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 70% 30%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 38 80% 40%;
+    --warning-foreground: 210 40% 98%;
+
+    --border: 215 28% 18%;
+    --input: 215 28% 18%;
+    --ring: 199 89% 55%;
+
+    /* Chart colors (dark) */
+    --chart-1: 199 89% 55%;
+    --chart-2: 142 70% 45%;
+    --chart-3: 38 80% 55%;
+    --chart-4: 280 65% 65%;
+    --chart-5: 0 72% 55%;
+
+    /* Sidebar dark */
+    --sidebar-background: 215 28% 10%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 199 89% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 199 50% 18%;
+    --sidebar-accent-foreground: 199 89% 70%;
+    --sidebar-border: 215 28% 18%;
+    --sidebar-ring: 199 89% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Font optimization - prevent layout shift with font-display: swap */
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+  }
+
+  /* Image optimization - responsive images with modern formats */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Lazy load optimization */
+  img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  img[loading="lazy"].loaded {
+    opacity: 1;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-sm border border-border/50;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .shadow-premium {
+    box-shadow:
+      0 10px 30px -10px rgba(0, 0, 0, 0.1),
+      0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .animate-in {
+    animation-duration: 500ms;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    animation-fill-mode: both;
+  }
+
+  /* Page transition animations */
+  .page-enter {
+    animation: pageEnter 0.3s ease-out forwards;
+  }
+
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Fade in animation for staggered items */
+  .stagger-fade-in > * {
+    animation: staggerFade 0.4s ease-out both;
+  }
+  .stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-fade-in > *:nth-child(2) { animation-delay: 60ms; }
+  .stagger-fade-in > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger-fade-in > *:nth-child(4) { animation-delay: 180ms; }
+  .stagger-fade-in > *:nth-child(5) { animation-delay: 240ms; }
+  .stagger-fade-in > *:nth-child(6) { animation-delay: 300ms; }
+
+  @keyframes staggerFade {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
+}
+
+/* Print styles for invoices and receipts */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+}

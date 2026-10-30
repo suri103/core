@@ -1,0 +1,12 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "coredent-api/Dockerfile"
+
+[deploy]
+startCommand = "python /app/start.py"
+healthcheckPath = "/health"
+# The web role may run advisory-lock-serialised migrations on cold start;
+# give the platform enough room before declaring the deploy failed.
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

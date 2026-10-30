@@ -1,0 +1,100 @@
+# FastAPI and ASGI server
+fastapi>=0.138.0,<0.139.0
+starlette>=1.3.1,<2.0.0
+uvicorn[standard]>=0.30.0,<0.33.0
+
+# Database
+sqlalchemy>=2.0.36,<2.1.0
+alembic>=1.13.3,<1.15.0
+psycopg2-binary>=2.9.9,<3.0.0
+asyncpg>=0.29.0,<0.31.0
+
+# Authentication & Security
+# SECURITY: Migrated from unmaintained python-jose to PyJWT (Feb 2026)
+# PyJWT is actively maintained, has better security posture, and is the
+# official successor recommended by the python-jose author.
+pyjwt[crypto]>=2.9.0,<3.0.0
+# SECURITY: Migrated from unmaintained passlib to direct bcrypt usage.
+# passlib has been unmaintained since 2020. Direct bcrypt has no transitive
+# dependency on a dead library and removes the <4.0 pin hack.
+bcrypt>=4.2.0,<5.0.0
+python-multipart>=0.0.9,<0.1.0
+
+# Encryption (for API keys and sensitive data)
+# SECURITY: bumped past 49.0.0 (PYSEC-2026-3552) to 50.x for vulnerability fix
+cryptography>=50.0.0,<51.0.0
+
+# Validation
+pydantic>=2.10.0,<3.0.0
+pydantic-settings>=2.6.1,<3.0.0
+email-validator>=2.2.0,<3.0.0
+
+# Rate Limiting
+slowapi>=0.1.9,<0.2.0
+
+# Redis (optional, for caching)
+redis>=5.0.8,<6.0.0
+hiredis>=3.1.0,<4.0.0
+
+# AWS S3 (for file storage)
+boto3>=1.35.0,<2.0.0
+
+# File type detection (for secure uploads)
+python-magic>=0.4.27,<0.5.0
+python-magic-bin>=0.4.14,<0.5.0; sys_platform == "win32"  # Windows binary for python-magic
+
+# Virus Scanning (for file uploads security)
+clamd>=1.0.0,<2.0.0  # ClamAV integration
+requests-toolbelt>=1.0.0,<2.0.0  # VirusTotal API multipart encoding
+
+# Stripe Payments (US Market)
+stripe>=7.11.0,<12.0.0
+
+# Razorpay Payments (Indian Market - UPI/Paytm/PhonePe)
+razorpay>=1.4.2,<2.0.0
+
+# Insurance EDI
+requests>=2.32.0,<3.0.0
+
+# Email (custom SMTP/SendGrid/SES implementation in app.core.email — no
+# fastapi-mail dependency; it was removed because its hard pin
+# `cryptography<50.0.0` blocked the PYSEC-2026-3552 fix in cryptography)
+
+# Testing
+pytest>=9.0.3,<10.0.0
+pytest-asyncio>=1.0.0,<2.0.0
+pytest-cov>=5.0.0,<7.0.0
+httpx>=0.27.0,<1.0.0
+pip-audit>=2.7.0,<3.0.0  # SECURITY: dependency vulnerability scanner
+
+# Code Quality
+black>=26.3.1,<27.0.0
+flake8>=7.1.0,<8.0.0
+mypy>=1.13.0,<2.0.0
+isort>=5.13.2,<6.0.0
+
+# Monitoring
+# SECURITY: bumped from 1.39.2 (Aug 2023) to 2.x for latest fixes
+sentry-sdk[fastapi]>=2.18.0,<3.0.0
+prometheus-client>=0.21.0,<1.0.0
+python-json-logger>=2.0.7,<3.0.0
+
+# Documentation
+mkdocs>=1.6.0,<2.0.0
+mkdocs-material>=9.5.6,<10.0.0
+
+# Utilities
+python-dotenv>=1.0.1,<2.0.0
+pytz>=2024.1,<2025.0
+# setuptools<81 pins the legacy pkg_resources shim the containerized
+# razorpay 1.4.x SDK imports at module load (build-time safety removed it in
+# setuptools>=81). Upstream has not cut a 2.0 release; when it lands, prefer
+# dropping the pin and removing the razorpay dependency entirely.
+setuptools>=70.0.0,<81.0.0
+
+# SMS Service
+twilio>=9.0.0,<10.0.0
+
+# Task Scheduling (for automated reminders)
+apscheduler>=3.10.0,<4.0.0
+celery>=5.4.0,<6.0.0

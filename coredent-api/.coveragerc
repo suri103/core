@@ -1,0 +1,19 @@
+[run]
+source = app
+omit =
+    */tests/*
+    */__pycache__/*
+    */migrations/*
+    */alembic/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    @abstractmethod
+    raise NotImplementedError
+fail_under = 50
+show_missing = True
+
+[html]
+directory = htmlcov

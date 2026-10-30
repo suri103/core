@@ -1,0 +1,5 @@
+# Railway Configuration for Monorepo
+# This tells Railway how to handle the monorepo structure
+
+# Backend service uses coredent-api/railway.toml
+# Frontend service uses coredent-style-main/railway.toml

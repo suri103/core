@@ -1,0 +1,31 @@
+# Railway Ignore File - Exclude everything except backend
+
+# Ignore root level files
+*.md
+*.txt
+*.sh
+.git/
+.github/
+.vscode/
+.idea/
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+
+# Ignore frontend
+coredent-style-main/
+node_modules/
+
+# Ignore test databases
+*.db
+*.sqlite
+*.sqlite3
+test.db
+tmp_test.py
+
+# Ignore benchmarks
+.benchmarks/
+
+# Keep only backend
+!coredent-api/

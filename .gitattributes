@@ -1,0 +1,8 @@
+# Line endings matter for shell scripts executed inside Linux containers.
+# With core.autocrlf=true (Windows default) a checkout rewrites these to CRLF,
+# and a CRLF shebang fails with "bad interpreter: No such file or directory".
+# Pin them to LF so the working tree, the index and the image always agree.
+*.sh        text eol=lf
+*.bash      text eol=lf
+Dockerfile  text eol=lf
+Dockerfile.* text eol=lf

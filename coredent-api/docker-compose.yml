@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: coredent-postgres
+    environment:
+      POSTGRES_USER: coredent
+      POSTGRES_PASSWORD: coredent123
+      POSTGRES_DB: coredent_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coredent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Optional - for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: coredent-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  api:
+    build: .
+    container_name: coredent-api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://coredent:coredent123@postgres:5432/coredent_db
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=True
+      - ENVIRONMENT=development
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Reports API</title>
+</head>
+<body>
+    <h1>Testing Reports API Response Handling</h1>
+    <button onclick="testReports()">Test Reports Endpoint</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function testReports() {
+            const output = document.getElementById('output');
+            output.textContent = 'Testing...\n';
+
+            try {
+                // Step 1: Login
+                output.textContent += 'Step 1: Logging in...\n';
+                const loginResp = await fetch('http://localhost:8080/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@coredent.com',
+                        password: 'Admin123!@#'
+                    }),
+                    credentials: 'include'
+                });
+
+                if (!loginResp.ok) {
+                    output.textContent += `Login failed: ${loginResp.status}\n`;
+                    return;
+                }
+
+                const loginData = await loginResp.json();
+                output.textContent += `Login successful! Token: ${loginData.access_token.substring(0, 20)}...\n\n`;
+
+                // Step 2: Get Reports
+                output.textContent += 'Step 2: Fetching reports...\n';
+                const toDate = new Date().toISOString().split('T')[0];
+                const fromDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+                const reportsResp = await fetch(
+                    `http://localhost:8080/api/v1/reports/dashboard?from=${fromDate}&to=${toDate}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${loginData.access_token}`
+                        },
+                        credentials: 'include'
+                    }
+                );
+
+                output.textContent += `Reports status: ${reportsResp.status}\n`;
+
+                if (!reportsResp.ok) {
+                    const errorText = await reportsResp.text();
+                    output.textContent += `Reports failed: ${errorText}\n`;
+                    return;
+                }
+
+                const reportsData = await reportsResp.json();
+                output.textContent += '\nReports data structure:\n';
+                output.textContent += JSON.stringify(reportsData, null, 2);
+
+                // Step 3: Simulate frontend processing
+                output.textContent += '\n\n=== Frontend Processing ===\n';
+                
+                // This simulates what apiClient.get does
+                const apiResponse = {
+                    success: true,
+                    data: reportsData
+                };
+                
+                output.textContent += `API Response success: ${apiResponse.success}\n`;
+                output.textContent += `API Response data exists: ${!!apiResponse.data}\n`;
+                output.textContent += `Appointments total: ${apiResponse.data.appointments.total}\n`;
+                output.textContent += `Revenue total: ${apiResponse.data.revenue.totalRevenue}\n`;
+                
+                // Check the condition from useApiRequest
+                if (apiResponse.success && apiResponse.data) {
+                    output.textContent += '\n✅ useApiRequest would accept this response\n';
+                } else {
+                    output.textContent += '\n❌ useApiRequest would reject this response\n';
+                }
+                
+                // Check empty state condition
+                const hasNoData = apiResponse.data && 
+                    apiResponse.data.appointments && 
+                    apiResponse.data.revenue && 
+                    apiResponse.data.appointments.total === 0 && 
+                    apiResponse.data.revenue.totalRevenue === 0;
+                    
+                output.textContent += `\nEmpty state check: ${hasNoData ? '✅ Would show "No Data Available"' : '❌ Would show data'}\n`;
+
+            } catch (error) {
+                output.textContent += `\nError: ${error.message}\n${error.stack}`;
+            }
+        }
+    </script>
+</body>
+</html>

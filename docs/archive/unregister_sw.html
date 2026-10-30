@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unregister Service Worker</title>
+</head>
+<body>
+    <h1>Unregistering Service Worker...</h1>
+    <div id="status">Checking...</div>
+
+    <script>
+        async function unregisterServiceWorkers() {
+            const statusDiv = document.getElementById('status');
+            
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    
+                    if (registrations.length === 0) {
+                        statusDiv.innerHTML = '<p style="color: green;">✅ No service workers found</p>';
+                        return;
+                    }
+                    
+                    statusDiv.innerHTML = `<p>Found ${registrations.length} service worker(s). Unregistering...</p>`;
+                    
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        statusDiv.innerHTML += `<p style="color: green;">✅ Unregistered: ${registration.scope}</p>`;
+                    }
+                    
+                    statusDiv.innerHTML += '<p style="color: green; font-weight: bold;">✅ All service workers unregistered! Please refresh the page.</p>';
+                    
+                    // Clear caches
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        for (const cacheName of cacheNames) {
+                            await caches.delete(cacheName);
+                        }
+                        statusDiv.innerHTML += '<p style="color: green;">✅ All caches cleared!</p>';
+                    }
+                    
+                } catch (error) {
+                    statusDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+                }
+            } else {
+                statusDiv.innerHTML = '<p style="color: orange;">⚠️ Service workers not supported</p>';
+            }
+        }
+        
+        unregisterServiceWorkers();
+    </script>
+</body>
+</html>
