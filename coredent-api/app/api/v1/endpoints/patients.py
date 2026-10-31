@@ -73,8 +73,18 @@ async def list_patients(
     # appointment history for zero benefit.
     # M15 FIX: soft-deleted (inactive) patients are hidden unless the
     # caller explicitly filters for them.
+    target_status: Optional[PatientStatus] = None
+    if status_filter:
+        s_clean = status_filter.strip().lower()
+        if s_clean in ("active", "patientstatus.active"):
+            target_status = PatientStatus.ACTIVE
+        elif s_clean in ("inactive", "patientstatus.inactive"):
+            target_status = PatientStatus.INACTIVE
+
     base_stmt = select(Patient).where(Patient.practice_id == practice_id)
-    if not status_filter:
+    if target_status is not None:
+        base_stmt = base_stmt.where(Patient.status == target_status)
+    elif not status_filter:
         base_stmt = base_stmt.where(Patient.status != PatientStatus.INACTIVE)
 
     # Apply search - two-phase approach for encrypted fields:
@@ -117,9 +127,9 @@ async def list_patients(
             else:
                 base_stmt = base_stmt.where(or_(*filters))
 
-    # Apply status filter (only for SQL path; in-memory filters below)
-    if status_filter and not use_in_memory_fallback:
-        base_stmt = base_stmt.where(Patient.status == status_filter)
+    # Apply status filter (target_status already applied to base_stmt above)
+    if target_status is not None and not use_in_memory_fallback:
+        pass  # already filtered in base_stmt
 
     # Get total count BEFORE pagination
     from sqlalchemy import func
@@ -137,17 +147,19 @@ async def list_patients(
             or q_lower in (p.phone or "").lower()
             or q_lower in f"{(p.first_name or '').lower()} {(p.last_name or '').lower()}"
         ]
-        if status_filter:
+        if target_status is not None:
             matched = [
                 p for p in matched
-                if (p.status.value if hasattr(p.status, 'value') else p.status) == status_filter
+                if p.status == target_status or (hasattr(p.status, 'value') and p.status.value == target_status.value)
             ]
         total = len(matched)
         patients = matched[pagination.offset:pagination.offset + pagination.limit]
     else:
         # SQL path: count + paginate as before.
         count_stmt = select(func.count()).select_from(Patient).where(Patient.practice_id == practice_id)
-        if not status_filter:
+        if target_status is not None:
+            count_stmt = count_stmt.where(Patient.status == target_status)
+        elif not status_filter:
             count_stmt = count_stmt.where(Patient.status != PatientStatus.INACTIVE)
         if query and not use_in_memory_fallback:
             query_clean = sanitize_search_query(query)
@@ -161,8 +173,6 @@ async def list_patients(
                 count_filters.append(Patient.first_name == query_clean)
                 count_filters.append(Patient.last_name == query_clean)
                 count_stmt = count_stmt.where(or_(*count_filters))
-        if status_filter:
-            count_stmt = count_stmt.where(Patient.status == status_filter)
 
         count_result = await db.execute(count_stmt)
         total = count_result.scalar() or 0

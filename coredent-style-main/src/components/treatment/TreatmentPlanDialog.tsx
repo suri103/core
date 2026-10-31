@@ -27,9 +27,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { patientsApi } from '@/services/api';
+import { Search } from 'lucide-react';
+import { patientApi } from '@/services/patientApi';
 import { schedulingApi } from '@/services/schedulingApi';
 import type { TreatmentPlan, TreatmentPlanCreateInput } from '@/types/treatmentPlan';
+import type { PatientListItem } from '@/types/patient';
 
 const planSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(255, 'Title too long'),
@@ -56,26 +58,40 @@ export function TreatmentPlanDialog({
 }: TreatmentPlanDialogProps) {
   const isEditing = !!plan;
   const [patientSearch, setPatientSearch] = React.useState('');
-  const { data: patientsResponse, isLoading: patientsLoading } = useQuery({
-    queryKey: ['patients', 'treatment-plan-options', patientSearch],
-    queryFn: () => patientsApi.list({
-      status: 'active',
-      limit: 100,
-      search: patientSearch.trim() || undefined,
-    }),
+  const [debouncedSearch, setDebouncedSearch] = React.useState('');
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(patientSearch);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [patientSearch]);
+
+  const { data: patients = [], isLoading: patientsLoading } = useQuery<PatientListItem[]>({
+    queryKey: ['patients', 'treatment-plan-options', debouncedSearch],
+    queryFn: async () => {
+      const response = await patientApi.getPatients({
+        query: debouncedSearch.trim() || undefined,
+        limit: 100,
+      });
+      return Array.isArray(response?.data) ? response.data : [];
+    },
     enabled: open,
   });
+
   const { data: providers = [], isLoading: providersLoading } = useQuery({
     queryKey: ['providers', 'treatment-plan-options'],
     queryFn: () => schedulingApi.getProviders(),
     enabled: open,
   });
 
-  const patients = patientsResponse?.data?.data ?? [];
-  const eligibleProviders = providers.filter((provider) => {
-    const role = String(provider.role).toLowerCase();
-    return role === 'dentist' || role === 'owner';
-  });
+  const eligibleProviders = React.useMemo(() => {
+    const filtered = providers.filter((provider) => {
+      const role = String(provider.role || '').toLowerCase();
+      return role === 'dentist' || role === 'owner' || role === 'admin';
+    });
+    return filtered.length > 0 ? filtered : providers;
+  }, [providers]);
 
   const form = useForm<PlanFormValues>({
     resolver: zodResolver(planSchema),
@@ -88,8 +104,33 @@ export function TreatmentPlanDialog({
     },
   });
 
+  // Keep selected patient in the list even if a search filter would otherwise exclude them
+  const selectedPatientId = form.watch('patientId');
+  const displayPatients = React.useMemo(() => {
+    const currentId = selectedPatientId || plan?.patientId;
+    if (currentId && !patients.some((p) => p.id === currentId)) {
+      const fallbackName = plan?.patientName || 'Selected Patient';
+      const parts = fallbackName.split(' ');
+      const existingStub: PatientListItem = {
+        id: currentId,
+        firstName: parts[0] || 'Selected',
+        lastName: parts.slice(1).join(' ') || 'Patient',
+        phone: '',
+        email: '',
+        dateOfBirth: '',
+        status: 'active',
+        hasMedicalAlerts: false,
+        medicalAlerts: [],
+      };
+      return [existingStub, ...patients];
+    }
+    return patients;
+  }, [patients, selectedPatientId, plan]);
+
   React.useEffect(() => {
     if (open) {
+      setPatientSearch('');
+      setDebouncedSearch('');
       form.reset({
         title: plan?.title || '',
         patientId: plan?.patientId || '',
@@ -101,14 +142,14 @@ export function TreatmentPlanDialog({
   }, [open, plan, form]);
 
   const handleSubmit = async (values: PlanFormValues) => {
-    const patient = patients.find((item) => item.id === values.patientId);
+    const patient = displayPatients.find((item) => item.id === values.patientId);
     const provider = eligibleProviders.find((item) => item.id === values.providerId);
     const result = await onSubmit({
       title: values.title,
       patientId: values.patientId,
       providerId: values.providerId,
-      patientName: patient ? `${patient.firstName} ${patient.lastName}`.trim() : undefined,
-      providerName: provider?.name,
+      patientName: patient ? `${patient.firstName} ${patient.lastName}`.trim() : plan?.patientName,
+      providerName: provider?.name || plan?.providerName,
       treatmentGoals: values.treatmentGoals?.trim() || undefined,
       notes: values.notes?.trim() || undefined,
     });
@@ -142,12 +183,16 @@ export function TreatmentPlanDialog({
 
             <div className="space-y-2">
               <FormLabel htmlFor="treatment-patient-search">Find Patient</FormLabel>
-              <Input
-                id="treatment-patient-search"
-                value={patientSearch}
-                onChange={(event) => setPatientSearch(event.target.value)}
-                placeholder="Search active patients by name, email, or phone"
-              />
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="treatment-patient-search"
+                  value={patientSearch}
+                  onChange={(event) => setPatientSearch(event.target.value)}
+                  placeholder="Search active patients by name, email, or phone…"
+                  className="pl-9"
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
                 Search the practice directory, then select the matching patient record.
               </p>
@@ -159,18 +204,47 @@ export function TreatmentPlanDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Patient</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={patientsLoading}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={patientsLoading && displayPatients.length === 0}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={patientsLoading ? 'Loading patients…' : 'Select patient'} />
+                        <SelectValue
+                          placeholder={
+                            patientsLoading && displayPatients.length === 0
+                              ? 'Loading active patients…'
+                              : 'Select patient'
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {patients.map((patient) => (
-                        <SelectItem key={patient.id} value={patient.id}>
-                          {patient.firstName} {patient.lastName}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-64 overflow-y-auto">
+                      {patientsLoading && displayPatients.length === 0 ? (
+                        <div className="py-6 px-3 text-center text-xs text-muted-foreground">
+                          Loading patients…
+                        </div>
+                      ) : displayPatients.length === 0 ? (
+                        <div className="py-6 px-3 text-center text-xs text-muted-foreground">
+                          No active patients found{debouncedSearch ? ` matching "${debouncedSearch}"` : ''}
+                        </div>
+                      ) : (
+                        displayPatients.map((patient) => (
+                          <SelectItem key={patient.id} value={patient.id}>
+                            <div className="flex flex-col text-left py-0.5">
+                              <span className="font-medium text-foreground">
+                                {patient.firstName} {patient.lastName}
+                              </span>
+                              {(patient.phone || patient.email) && (
+                                <span className="text-xs text-muted-foreground">
+                                  {[patient.phone, patient.email].filter(Boolean).join(' • ')}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -184,18 +258,38 @@ export function TreatmentPlanDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Provider</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={providersLoading}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={providersLoading && eligibleProviders.length === 0}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={providersLoading ? 'Loading providers…' : 'Select provider'} />
+                        <SelectValue
+                          placeholder={
+                            providersLoading && eligibleProviders.length === 0
+                              ? 'Loading providers…'
+                              : 'Select provider'
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {eligibleProviders.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.id}>
-                          {provider.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      {providersLoading && eligibleProviders.length === 0 ? (
+                        <div className="py-4 text-center text-xs text-muted-foreground">
+                          Loading providers…
+                        </div>
+                      ) : eligibleProviders.length === 0 ? (
+                        <div className="py-4 text-center text-xs text-muted-foreground">
+                          No providers available
+                        </div>
+                      ) : (
+                        eligibleProviders.map((provider) => (
+                          <SelectItem key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
