@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { LocationSwitcher } from './LocationSwitcher';
 import {
   LayoutDashboard,
@@ -153,6 +153,12 @@ const navItems: NavItem[] = [
     roles: ['owner', 'admin'],
   },
   {
+    label: 'Staff Management',
+    icon: Users,
+    href: '/admin/staff-management',
+    roles: ['owner', 'admin'],
+  },
+  {
     label: 'Data Migration',
     icon: Database,
     href: '/admin/migration',
@@ -245,49 +251,51 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: Side
 
       {/* Navigation */}
       <ScrollArea className="h-[calc(100vh-8rem)]">
-        <nav className="flex flex-col gap-1 p-2">
-          {filteredItems.map((item) => {
-            const isActive = location.pathname === item.href || 
-                            location.pathname.startsWith(item.href + '/');
-            const Icon = item.icon;
+        <TooltipProvider delayDuration={0}>
+          <nav className="flex flex-col gap-1 p-2">
+            {filteredItems.map((item) => {
+              const isActive = location.pathname === item.href || 
+                              location.pathname.startsWith(item.href + '/');
+              const Icon = item.icon;
 
-            if (collapsed && !isMobile) {
+              if (collapsed && !isMobile) {
+                return (
+                  <Tooltip key={item.href} delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <NavLink to={item.href}>
+                        <Button
+                          variant={isActive ? 'secondary' : 'ghost'}
+                          size="icon"
+                          className="w-full"
+                        >
+                          <Icon className="h-5 w-5" />
+                        </Button>
+                      </NavLink>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+
               return (
-                <Tooltip key={item.href} delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <NavLink to={item.href}>
-                      <Button
-                        variant={isActive ? 'secondary' : 'ghost'}
-                        size="icon"
-                        className="w-full"
-                      >
-                        <Icon className="h-5 w-5" />
-                      </Button>
-                    </NavLink>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
+                <NavLink key={item.href} to={item.href} onClick={isMobile ? onMobileClose : undefined}>
+                  <Button
+                    variant={isActive ? 'secondary' : 'ghost'}
+                    className={cn(
+                      "w-full justify-start gap-3",
+                      isActive && "bg-secondary"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
                     {item.label}
-                  </TooltipContent>
-                </Tooltip>
+                  </Button>
+                </NavLink>
               );
-            }
-
-            return (
-              <NavLink key={item.href} to={item.href} onClick={isMobile ? onMobileClose : undefined}>
-                <Button
-                  variant={isActive ? 'secondary' : 'ghost'}
-                  className={cn(
-                    "w-full justify-start gap-3",
-                    isActive && "bg-secondary"
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </Button>
-              </NavLink>
-            );
-          })}
-        </nav>
+            })}
+          </nav>
+        </TooltipProvider>
       </ScrollArea>
 
       {/* Collapse Toggle (desktop only) */}
