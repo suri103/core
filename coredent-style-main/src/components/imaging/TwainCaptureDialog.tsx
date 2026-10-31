@@ -123,14 +123,20 @@ export function TwainCaptureDialog({
             <Label htmlFor="sensor-device">Connected Sensor / Camera</Label>
             <Select value={selectedDevice} onValueChange={setSelectedDevice}>
               <SelectTrigger id="sensor-device">
-                <SelectValue placeholder="Select sensor device" />
+                <SelectValue placeholder={devices.length === 0 ? "No capture devices detected" : "Select sensor device"} />
               </SelectTrigger>
               <SelectContent>
-                {devices.map((d: any) => (
-                  <SelectItem key={d.id || d.name} value={d.name}>
-                    {d.name} {d.is_ready ? '(Ready)' : '(Standby)'}
-                  </SelectItem>
-                ))}
+                {devices.length === 0 ? (
+                  <div className="py-3 px-3 text-center text-xs text-muted-foreground">
+                    No capture devices detected
+                  </div>
+                ) : (
+                  devices.map((d: any) => (
+                    <SelectItem key={d.id || d.name} value={d.name}>
+                      {d.name} {d.is_ready ? '(Ready)' : '(Standby)'}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

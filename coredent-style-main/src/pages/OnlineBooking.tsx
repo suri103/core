@@ -10,7 +10,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Calendar, CheckCircle2, Clock, Copy, Link2, Search, UserRound, Users, XCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
-import { patientsApi } from '@/services/api';
+import { patientApi } from '@/services/patientApi';
 import {
   bookingApi,
   type BookingPage,
@@ -100,8 +100,7 @@ export default function OnlineBooking() {
     queryKey: ['booking', 'patient-association', patientSearch],
     enabled: associationBooking !== null,
     queryFn: async () => {
-      const response = await patientsApi.list({ search: patientSearch || undefined, status: 'active', page: 1, limit: 20 });
-      return requireData(response as ApiResponse<PaginatedResponse<Patient>>);
+      return patientApi.getPatients({ query: patientSearch || undefined, page: 1, limit: 20 });
     },
   });
 

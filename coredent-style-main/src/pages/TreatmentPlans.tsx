@@ -28,8 +28,9 @@ import { TreatmentPlanDialog } from '@/components/treatment/TreatmentPlanDialog'
 import { TreatmentPlanDetails } from '@/components/treatment/TreatmentPlanDetails';
 import { TreatmentPlanVisualBuilder } from '@/components/treatment/TreatmentPlanVisualBuilder';
 import { treatmentPlanApi } from '@/services/treatmentPlanApi';
-import { patientsApi } from '@/services/api';
+import { patientApi } from '@/services/patientApi';
 import { schedulingApi } from '@/services/schedulingApi';
+import type { PatientListItem } from '@/types/patient';
 import type {
   TreatmentPlan,
   TreatmentPlanCreateInput,
@@ -58,9 +59,12 @@ export default function TreatmentPlans() {
     queryFn: () => treatmentPlanApi.getPlans(),
     staleTime: 5 * 60 * 1000,
   });
-  const { data: patientsResponse } = useQuery({
+  const { data: patients = [] } = useQuery<PatientListItem[]>({
     queryKey: ['patients', 'treatment-plan-options'],
-    queryFn: () => patientsApi.list({ status: 'active', limit: 100 }),
+    queryFn: async () => {
+      const res = await patientApi.getPatients({ limit: 100 });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
   });
   const { data: providers = [] } = useQuery({
     queryKey: ['providers', 'treatment-plan-options'],
@@ -69,7 +73,7 @@ export default function TreatmentPlans() {
 
   const plans = useMemo(() => {
     const patientNames = new Map(
-      (patientsResponse?.data?.data ?? []).map((patient) => [
+      patients.map((patient) => [
         patient.id,
         `${patient.firstName} ${patient.lastName}`.trim(),
       ]),
@@ -82,7 +86,7 @@ export default function TreatmentPlans() {
       patientName: plan.patientName ?? patientNames.get(plan.patientId),
       providerName: plan.providerName ?? providerNames.get(plan.providerId),
     }));
-  }, [patientsResponse, providers, rawPlans]);
+  }, [patients, providers, rawPlans]);
 
   const filteredPlans = plans.filter((plan) => {
     const query = searchQuery.toLowerCase();

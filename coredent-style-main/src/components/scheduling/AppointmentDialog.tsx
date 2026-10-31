@@ -303,11 +303,17 @@ export function AppointmentDialog({
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {appointmentTypes.map((t) => (
-                    <SelectItem key={t.id} value={t.name}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
+                  {appointmentTypes.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No appointment types configured
+                    </div>
+                  ) : (
+                    appointmentTypes.map((t) => (
+                      <SelectItem key={t.id} value={t.name}>
+                        {t.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -319,14 +325,20 @@ export function AppointmentDialog({
               <Label htmlFor="provider">Dentist</Label>
               <Select value={providerId} onValueChange={setProviderId}>
                 <SelectTrigger id="provider">
-                  <SelectValue placeholder="Select Dentist" />
+                  <SelectValue placeholder={providers.length === 0 ? "No dentists found" : "Select Dentist"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {providers.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
+                  {providers.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No dentists available
+                    </div>
+                  ) : (
+                    providers.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -336,14 +348,20 @@ export function AppointmentDialog({
               <Label htmlFor="chair">Operatory / Chair</Label>
               <Select value={chairId} onValueChange={setChairId}>
                 <SelectTrigger id="chair">
-                  <SelectValue placeholder="Select Chair" />
+                  <SelectValue placeholder={chairs.length === 0 ? "No chairs found" : "Select Chair"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {chairs.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
+                  {chairs.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No chairs configured
+                    </div>
+                  ) : (
+                    chairs.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

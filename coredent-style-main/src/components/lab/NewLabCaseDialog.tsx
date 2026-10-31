@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { patientsApi } from '@/services/api';
+import { patientApi } from '@/services/patientApi';
+import type { PatientListItem } from '@/types/patient';
 import type { LabVendor, LabCaseRecord } from '@/services/labsApi';
 
 const CASE_TYPES = [
@@ -49,12 +50,14 @@ function localDateFromISO(value?: string): string {
 }
 
 export function NewLabCaseDialog({ open, onOpenChange, labs, initial, onSubmit }: Props) {
-  const { data: patientsResponse } = useQuery({
+  const { data: patients = [], isLoading: patientsLoading } = useQuery<PatientListItem[]>({
     queryKey: ['patients', 'list-simple'],
-    queryFn: () => patientsApi.list({ limit: 100 }),
+    queryFn: async () => {
+      const res = await patientApi.getPatients({ limit: 100 });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
     enabled: open,
   });
-  const patients = patientsResponse?.data?.data ?? [];
 
   const [labId, setLabId] = useState('');
   const [patientId, setPatientId] = useState('');
@@ -132,22 +135,48 @@ export function NewLabCaseDialog({ open, onOpenChange, labs, initial, onSubmit }
             <div className="space-y-1">
               <Label>Lab *</Label>
               <Select value={labId} onValueChange={setLabId}>
-                <SelectTrigger><SelectValue placeholder="Select lab" /></SelectTrigger>
-                <SelectContent>
-                  {labs.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-                  ))}
+                <SelectTrigger><SelectValue placeholder={labs.length === 0 ? "No labs configured" : "Select lab"} /></SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {labs.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No labs configured yet
+                    </div>
+                  ) : (
+                    labs.map((l) => (
+                      <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
               <Label>Patient *</Label>
               <Select value={patientId} onValueChange={setPatientId}>
-                <SelectTrigger><SelectValue placeholder="Select patient" /></SelectTrigger>
-                <SelectContent>
-                  {patients.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.firstName} {p.lastName}</SelectItem>
-                  ))}
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      patientsLoading
+                        ? "Loading patients…"
+                        : patients.length === 0
+                        ? "No patients available"
+                        : "Select patient"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {patientsLoading ? (
+                    <div className="py-3 px-3 text-center text-xs text-muted-foreground">
+                      Loading patients…
+                    </div>
+                  ) : patients.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No patients in practice yet
+                    </div>
+                  ) : (
+                    patients.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.firstName} {p.lastName}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -72,6 +72,12 @@ vi.mock('@/services/api', () => ({
   clinicalNotesApi: mocks.clinicalNotesApi,
 }));
 
+vi.mock('@/services/patientApi', () => ({
+  patientApi: {
+    getPatients: vi.fn().mockResolvedValue({ data: [], total: 0, page: 1, limit: 100, totalPages: 1 }),
+  },
+}));
+
 vi.mock('@/hooks/useSubscriptions', () => ({
   useSubscriptionPlans: () => ({ data: mocks.subscriptionsState.plans, isLoading: mocks.subscriptionsState.plansLoading }),
   useSubscriptions: () => ({ data: mocks.subscriptionsState.subscriptions, isLoading: mocks.subscriptionsState.subsLoading }),

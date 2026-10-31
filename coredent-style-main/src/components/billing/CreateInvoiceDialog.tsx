@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2 } from 'lucide-react';
-import { patientsApi } from '@/services/api';
+import { Plus, Trash2, UserPlus } from 'lucide-react';
+import { patientApi } from '@/services/patientApi';
+import type { PatientListItem } from '@/types/patient';
 
 interface LineItemInput {
   description: string;
@@ -58,14 +59,14 @@ export function CreateInvoiceDialog({
   taxRatePercent,
   paymentTermsDays = 30,
 }: CreateInvoiceDialogProps) {
-  const { data: patientsResponse } = useQuery({
+  const { data: patients = [], isLoading: patientsLoading } = useQuery<PatientListItem[]>({
     queryKey: ['patients', 'list-simple'],
-    queryFn: () => patientsApi.list({ limit: 100 }),
+    queryFn: async () => {
+      const res = await patientApi.getPatients({ limit: 100 });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
     enabled: open,
   });
-  const patients = patientsResponse?.success && patientsResponse.data?.data
-    ? patientsResponse.data.data
-    : [];
 
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -136,19 +137,47 @@ export function CreateInvoiceDialog({
           <DialogTitle className="text-xl font-bold">Create Invoice</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {patients.length === 0 && !patientsLoading && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
+              <div className="flex items-center gap-2 font-medium">
+                <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>No patients registered in practice yet</span>
+              </div>
+              <p className="mt-1 text-[11px] text-blue-800/80 dark:text-blue-300/80">
+                An invoice must be assigned to an active patient record. Please register a patient first in Patients.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="patientSelect">Patient</Label>
-              <Select value={selectedPatientId} onValueChange={setSelectedPatientId} required>
+              <Select value={selectedPatientId} onValueChange={setSelectedPatientId} disabled={patientsLoading || patients.length === 0} required>
                 <SelectTrigger id="patientSelect" className="bg-background/60 border-border">
-                  <SelectValue placeholder="Select patient..." />
+                  <SelectValue
+                    placeholder={
+                      patientsLoading
+                        ? 'Loading patients…'
+                        : patients.length === 0
+                        ? 'No patients available'
+                        : 'Select patient...'
+                    }
+                  />
                 </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {patients.map(patient => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.firstName} {patient.lastName} ({patient.email || 'No email'})
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-60 overflow-y-auto bg-card border-border">
+                  {patientsLoading ? (
+                    <div className="py-4 text-center text-xs text-muted-foreground">Loading patients…</div>
+                  ) : patients.length === 0 ? (
+                    <div className="py-4 px-3 text-center text-xs text-muted-foreground">
+                      No patients registered in practice yet
+                    </div>
+                  ) : (
+                    patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.firstName} {patient.lastName} {patient.email ? `(${patient.email})` : ''}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

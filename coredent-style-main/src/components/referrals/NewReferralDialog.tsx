@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { patientsApi } from '@/services/api';
+import { patientApi } from '@/services/patientApi';
+import type { PatientListItem } from '@/types/patient';
 import type { ReferralRecord } from '@/services/referralsApi';
 
 const REFERRAL_TYPES = [
@@ -36,12 +37,14 @@ interface Props {
 }
 
 export function NewReferralDialog({ open, onOpenChange, initial, onSubmit }: Props) {
-  const { data: patientsResponse } = useQuery({
+  const { data: patients = [], isLoading: patientsLoading } = useQuery<PatientListItem[]>({
     queryKey: ['patients', 'list-simple'],
-    queryFn: () => patientsApi.list({ limit: 100 }),
+    queryFn: async () => {
+      const res = await patientApi.getPatients({ limit: 100 });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
     enabled: open,
   });
-  const patients = patientsResponse?.data?.data ?? [];
 
   const [patientId, setPatientId] = useState('');
   const [type, setType] = useState('');
@@ -100,11 +103,31 @@ export function NewReferralDialog({ open, onOpenChange, initial, onSubmit }: Pro
             <div className="space-y-1">
               <Label>Patient *</Label>
               <Select value={patientId} onValueChange={setPatientId}>
-                <SelectTrigger><SelectValue placeholder="Select patient" /></SelectTrigger>
-                <SelectContent>
-                  {patients.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.firstName} {p.lastName}</SelectItem>
-                  ))}
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      patientsLoading
+                        ? "Loading patients…"
+                        : patients.length === 0
+                        ? "No patients available"
+                        : "Select patient"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {patientsLoading ? (
+                    <div className="py-3 px-3 text-center text-xs text-muted-foreground">
+                      Loading patients…
+                    </div>
+                  ) : patients.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No patients in practice yet
+                    </div>
+                  ) : (
+                    patients.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.firstName} {p.lastName}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

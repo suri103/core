@@ -224,12 +224,18 @@ export default function EnterpriseHQ() {
                   <ArrowRightLeft className="h-3.5 w-3.5 mr-2 text-indigo-600" />
                   <SelectValue placeholder="Switch Clinic Context" />
                 </SelectTrigger>
-                <SelectContent>
-                  {clinics.map((clinic) => (
-                    <SelectItem key={clinic.id} value={clinic.id}>
-                      {clinic.name} ({clinic.city || 'Clinic'})
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {clinics.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No locations found
+                    </div>
+                  ) : (
+                    clinics.map((clinic) => (
+                      <SelectItem key={clinic.id} value={clinic.id}>
+                        {clinic.name} ({clinic.city || 'Clinic'})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

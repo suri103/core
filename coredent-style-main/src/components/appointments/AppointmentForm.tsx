@@ -137,14 +137,20 @@ export const AppointmentForm = React.memo(function AppointmentForm({
           onValueChange={(value) => handleChange('type', value)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select type" />
+            <SelectValue placeholder={appointmentTypes.length === 0 ? "No types configured" : "Select type"} />
           </SelectTrigger>
-          <SelectContent>
-            {appointmentTypes.map((type) => (
-              <SelectItem key={type.id} value={type.name}>
-                {type.name} ({type.duration} min)
-              </SelectItem>
-            ))}
+          <SelectContent className="max-h-60 overflow-y-auto">
+            {appointmentTypes.length === 0 ? (
+              <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                No appointment types configured
+              </div>
+            ) : (
+              appointmentTypes.map((type) => (
+                <SelectItem key={type.id} value={type.name}>
+                  {type.name} ({type.duration} min)
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>

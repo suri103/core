@@ -980,14 +980,20 @@ export default function Communications() {
                 onValueChange={(v) => setNewReminder({ ...newReminder, templateId: v })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a template" />
+                  <SelectValue placeholder={templates.length === 0 ? "No templates available" : "Select a template"} />
                 </SelectTrigger>
-                <SelectContent>
-                  {templates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {templates.length === 0 ? (
+                    <div className="py-2 px-3 text-center text-xs text-muted-foreground">
+                      No communication templates found
+                    </div>
+                  ) : (
+                    templates.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
