@@ -152,7 +152,9 @@ interface RecaptchaV3 {
   execute: (siteKey: string, options: { action: string }) => Promise<string>;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+import { normalizeApiBaseUrl } from '@/services/api';
+
+const API_BASE = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 const RECAPTCHA_SCRIPT_ID = 'coredent-recaptcha-v3';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

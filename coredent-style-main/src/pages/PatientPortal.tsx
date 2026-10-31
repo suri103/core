@@ -42,7 +42,9 @@ import {
 import { cn } from '@/lib/utils';
 import { getCaptchaToken } from '@/lib/recaptcha';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+import { normalizeApiBaseUrl } from '@/services/api';
+
+const API_BASE = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 interface PortalSession {
   access_token: string;

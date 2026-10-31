@@ -33,7 +33,15 @@ import type { BillingPreferences } from '@/types/settings';
 // Configuration
 // ============================================
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+export function normalizeApiBaseUrl(url: string | undefined): string {
+  if (!url || !url.trim()) return '/api/v1';
+  const trimmed = url.trim().replace(/\/+$/, '');
+  if (trimmed.endsWith('/api/v1')) return trimmed;
+  if (trimmed.endsWith('/api')) return `${trimmed}/v1`;
+  return `${trimmed}/api/v1`;
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 type ApiRecord = Record<string, unknown>;
 
