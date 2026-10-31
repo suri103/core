@@ -196,14 +196,13 @@ export default function EnterpriseHQ() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-10">
       {/* Header with Context Switcher */}
-      <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-indigo-600" aria-hidden="true" />
-            <h1 className="text-3xl font-black text-slate-900">Enterprise HQ</h1>
+            <h1 className="text-3xl font-bold">Enterprise HQ</h1>
             <Badge variant="secondary">Group scope</Badge>
           </div>
-          <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+          <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             <CalendarRange className="h-4 w-4" aria-hidden="true" />
             Authorized group analytics for {periodLabel}.
           </p>

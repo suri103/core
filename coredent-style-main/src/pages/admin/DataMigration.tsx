@@ -181,11 +181,8 @@ export default function DataMigration() {
   return (
     <div className="container mx-auto p-6 space-y-8 max-w-5xl">
       <div>
-        <div className="flex items-center gap-3">
-          <Layers className="h-8 w-8 text-blue-600" />
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Legacy Migration Engine</h1>
-        </div>
-        <p className="text-slate-500 font-medium mt-1">
+        <h1 className="text-3xl font-bold">Legacy Migration Engine</h1>
+        <p className="text-muted-foreground mt-1">
           Automated ETL pipeline for ingesting patient demographics, clinical procedures, and ledger records from Open Dental, Dentrix G4-G7, and Patterson Eaglesoft.
         </p>
       </div>

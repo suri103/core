@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, Cpu, ImageIcon, Upload } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { patientApi } from '@/services/patientApi';
 import { imagingApi } from '@/services/imagingApi';
 import type { ImageType } from '@/types/imaging';
@@ -16,13 +23,22 @@ export default function ImagingHub() {
   const [isTwainOpen, setIsTwainOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const patientsQuery = useQuery({ queryKey: ['imaging-patient-picker'], queryFn: () => patientApi.getPatients({ status: 'active', limit: 100 }) });
+  const patientsQuery = useQuery({
+    queryKey: ['imaging-patient-picker'],
+    queryFn: () => patientApi.getPatients({ limit: 100 }),
+  });
   const patients = patientsQuery.data?.data ?? [];
+
   useEffect(() => {
     const firstPatient = patientsQuery.data?.data[0];
     if (!patientId && firstPatient) setPatientId(firstPatient.id);
   }, [patientId, patientsQuery.data]);
-  const imagesQuery = useQuery({ queryKey: ['patient-images', patientId], queryFn: () => imagingApi.getImages({ patientId }), enabled: Boolean(patientId) });
+
+  const imagesQuery = useQuery({
+    queryKey: ['patient-images', patientId],
+    queryFn: () => imagingApi.getImages({ patientId }),
+    enabled: Boolean(patientId),
+  });
   const selectedPatient = patients.find((patient) => patient.id === patientId);
 
   const uploadMutation = useMutation({
@@ -36,19 +52,18 @@ export default function ImagingHub() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-10">
-      <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <ImageIcon className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-black text-slate-900">Imaging Library</h1>
-          </div>
-          <p className="mt-2 text-sm text-slate-500">Live patient images stored through the imaging API & DICOM Part 10 sensor bridge.</p>
+          <h1 className="text-3xl font-bold">Imaging Library</h1>
+          <p className="text-muted-foreground mt-1">
+            Live patient images stored through the imaging API &amp; DICOM Part 10 sensor bridge.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setIsTwainOpen(true)}
-            className="shadow-sm"
             disabled={!patientId}
           >
             <Camera className="mr-2 h-4 w-4" />
@@ -56,12 +71,68 @@ export default function ImagingHub() {
           </Button>
         </div>
       </div>
-      <Card className="rounded-2xl border-slate-200 shadow-sm"><CardHeader><CardTitle>Patient</CardTitle></CardHeader><CardContent><select aria-label="Select patient" className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm md:max-w-lg" value={patientId} onChange={(event) => setPatientId(event.target.value)} disabled={patientsQuery.isLoading || patients.length === 0}><option value="">Select a patient</option>{patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.firstName} {patient.lastName}</option>)}</select>{patientsQuery.isError && <p className="mt-3 text-sm text-red-600">Unable to load patients.</p>}{!patientsQuery.isLoading && patients.length === 0 && <p className="mt-3 text-sm text-slate-500">No active patients found.</p>}</CardContent></Card>
 
+      {/* Patient Picker Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Select Patient</CardTitle>
+          <CardDescription>
+            Choose a patient record to view or capture dental radiographs and clinical imagery.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="max-w-md">
+            <Select
+              value={patientId}
+              onValueChange={setPatientId}
+              disabled={patientsQuery.isLoading || patients.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    patientsQuery.isLoading
+                      ? 'Loading patients…'
+                      : patients.length === 0
+                      ? 'No active patients found'
+                      : 'Select a patient'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                {patientsQuery.isLoading ? (
+                  <div className="py-3 px-3 text-center text-xs text-muted-foreground">
+                    Loading patients…
+                  </div>
+                ) : patients.length === 0 ? (
+                  <div className="py-3 px-3 text-center text-xs text-muted-foreground">
+                    No active patients found in practice
+                  </div>
+                ) : (
+                  patients.map((patient) => (
+                    <SelectItem key={patient.id} value={patient.id}>
+                      {patient.firstName} {patient.lastName}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          {patientsQuery.isError && (
+            <p className="mt-2 text-sm text-destructive">Unable to load patient records.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Upload File Card */}
       {selectedPatient && (
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
-          <CardHeader><CardTitle>Upload image or DICOM File</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Upload Image or DICOM File</CardTitle>
+            <CardDescription>
+              Assign new radiographs, intraoral scans, or photographs to {selectedPatient.firstName} {selectedPatient.lastName}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <input
                 ref={fileInputRef}
@@ -74,13 +145,22 @@ export default function ImagingHub() {
                 <Upload className="mr-2 h-4 w-4" />
                 Choose file
               </Button>
-              <select aria-label="Image type" className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm" value={imageType} onChange={(event) => setImageType(event.target.value as ImageType)}>
-                <option value="xray">X-ray</option>
-                <option value="photo">Photo</option>
-                <option value="scan">Scan</option>
-                <option value="document">Document</option>
-                <option value="other">Other</option>
-              </select>
+
+              <div className="w-[140px]">
+                <Select value={imageType} onValueChange={(val) => setImageType(val as ImageType)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="xray">X-ray</SelectItem>
+                    <SelectItem value="photo">Photo</SelectItem>
+                    <SelectItem value="scan">Scan</SelectItem>
+                    <SelectItem value="document">Document</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Button
                 onClick={() => pendingFile && uploadMutation.mutate(pendingFile)}
                 disabled={!pendingFile || uploadMutation.isPending}
@@ -96,24 +176,25 @@ export default function ImagingHub() {
                 Capture from Sensor
               </Button>
             </div>
-            {pendingFile && <p className="text-sm text-slate-500">Selected: {pendingFile.name}</p>}
+            {pendingFile && <p className="text-sm text-muted-foreground">Selected: {pendingFile.name}</p>}
             {uploadMutation.isError && (
-              <p className="text-sm text-red-600">
+              <p className="text-sm text-destructive">
                 Upload failed: {uploadMutation.error instanceof Error ? uploadMutation.error.message : 'Unknown error'}
               </p>
             )}
-            {uploadMutation.isSuccess && <p className="text-sm text-green-700">Image uploaded.</p>}
+            {uploadMutation.isSuccess && <p className="text-sm text-emerald-600 font-medium">Image uploaded successfully.</p>}
           </CardContent>
         </Card>
       )}
 
+      {/* Sensor Bridge Status */}
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 text-foreground">
           <div className="flex items-start sm:items-center gap-3">
             <Cpu className="h-6 w-6 text-primary flex-shrink-0 mt-1 sm:mt-0" />
             <div>
-              <p className="text-sm font-semibold">Sensor Workstation Bridge & DICOM Engine Active</p>
-              <p className="text-xs text-muted-foreground">Direct streaming enabled for Dexis, Schick 33, Carestream RVG, Vatech EzSensor, Planmeca & TWAIN-compliant devices with native DICOM Part 10 metadata tagging.</p>
+              <p className="text-sm font-semibold">Sensor Workstation Bridge &amp; DICOM Engine Active</p>
+              <p className="text-xs text-muted-foreground">Direct streaming enabled for Dexis, Schick 33, Carestream RVG, Vatech EzSensor, Planmeca &amp; TWAIN-compliant devices with native DICOM Part 10 metadata tagging.</p>
             </div>
           </div>
           <Button
@@ -127,7 +208,58 @@ export default function ImagingHub() {
         </CardContent>
       </Card>
 
-      {selectedPatient && <Card className="rounded-2xl border-slate-200 shadow-sm"><CardHeader><CardTitle>{selectedPatient.firstName} {selectedPatient.lastName} — Images</CardTitle></CardHeader><CardContent>{imagesQuery.isLoading && <p className="text-sm text-slate-500">Loading images…</p>}{imagesQuery.isError && <p className="text-sm text-red-600">Unable to load images for this patient.</p>}{!imagesQuery.isLoading && !imagesQuery.isError && imagesQuery.data?.length === 0 && <p className="text-sm text-slate-500">No images uploaded for this patient.</p>}{imagesQuery.data && imagesQuery.data.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{imagesQuery.data.map((image) => <a key={image.id} href={image.fileUrl} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="flex aspect-video items-center justify-center bg-slate-100 text-slate-400">{image.fileUrl ? <img src={image.fileUrl} alt={image.title} className="h-full w-full object-cover" /> : <ImageIcon className="h-8 w-8" />}</div><div className="flex items-center justify-between gap-3 p-4"><div><p className="font-bold text-slate-800 group-hover:text-primary">{image.title}</p><p className="text-xs text-slate-500">{image.category} · {image.captureDate ? new Date(image.captureDate).toLocaleDateString() : 'Undated'}</p></div></div></a>)}</div>}</CardContent></Card>}
+      {/* Gallery */}
+      {selectedPatient && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">
+              {selectedPatient.firstName} {selectedPatient.lastName} — Imaging Records
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {imagesQuery.isLoading && <p className="text-sm text-muted-foreground">Loading images…</p>}
+            {imagesQuery.isError && <p className="text-sm text-destructive">Unable to load images for this patient.</p>}
+            {!imagesQuery.isLoading && !imagesQuery.isError && imagesQuery.data?.length === 0 && (
+              <div className="py-8 text-center text-muted-foreground">
+                <ImageIcon className="mx-auto h-10 w-10 text-muted-foreground/40 mb-2" />
+                <p className="text-sm font-medium">No imaging records found for this patient.</p>
+                <p className="text-xs mt-1">Upload a radiograph or use Direct Sensor Capture above.</p>
+              </div>
+            )}
+            {imagesQuery.data && imagesQuery.data.length > 0 && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {imagesQuery.data.map((image) => (
+                  <a
+                    key={image.id}
+                    href={image.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group overflow-hidden rounded-xl border border-border bg-card hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex aspect-video items-center justify-center bg-muted/40 text-muted-foreground">
+                      {image.fileUrl ? (
+                        <img src={image.fileUrl} alt={image.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 opacity-40" />
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-3 p-4">
+                      <div>
+                        <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {image.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {image.category} · {image.captureDate ? new Date(image.captureDate).toLocaleDateString() : 'Undated'}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <TwainCaptureDialog
         open={isTwainOpen}
