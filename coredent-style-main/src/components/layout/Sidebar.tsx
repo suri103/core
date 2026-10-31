@@ -1,6 +1,6 @@
 // ============================================
 // CoreDent PMS - Sidebar Navigation
-// Role-based menu visibility with mobile support
+// Organized clinical, operations, financial & admin sections
 // ============================================
 
 import React from 'react';
@@ -34,7 +34,6 @@ import {
   ShieldCheck,
   Boxes,
   Building2,
-  Megaphone,
   Server,
 } from 'lucide-react';
 import type { UserRole } from '@/types/api';
@@ -53,164 +52,169 @@ interface NavItem {
   roles: UserRole[];
 }
 
-const navItems: NavItem[] = [
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
   {
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-    href: '/dashboard',
-    roles: ['owner', 'admin', 'dentist', 'front_desk', 'accountant'],
+    title: 'Clinical',
+    items: [
+      {
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        href: '/dashboard',
+        roles: ['owner', 'admin', 'dentist', 'front_desk', 'accountant'],
+      },
+      {
+        label: 'Patients',
+        icon: Users,
+        href: '/patients',
+        roles: ['owner', 'admin', 'dentist', 'front_desk'],
+      },
+      {
+        label: 'Schedule',
+        icon: Calendar,
+        href: '/schedule',
+        roles: ['owner', 'admin', 'dentist', 'front_desk'],
+      },
+      {
+        label: 'Dental Chart',
+        icon: Stethoscope,
+        href: '/chart',
+        roles: ['owner', 'admin', 'dentist'],
+      },
+      {
+        label: 'Treatment Plans',
+        icon: ClipboardList,
+        href: '/treatment-plans',
+        roles: ['owner', 'admin', 'dentist'],
+      },
+      {
+        label: 'Clinical Notes',
+        icon: FileText,
+        href: '/notes',
+        roles: ['owner', 'admin', 'dentist'],
+      },
+      {
+        label: 'Imaging',
+        icon: Image,
+        href: '/imaging',
+        roles: ['owner', 'admin', 'dentist', 'hygienist'],
+      },
+    ],
   },
   {
-    label: 'Patients',
-    icon: Users,
-    href: '/patients',
-    roles: ['owner', 'admin', 'dentist', 'front_desk'],
+    title: 'Operations',
+    items: [
+      {
+        label: 'Online Booking',
+        icon: Calendar,
+        href: '/online-booking',
+        roles: ['owner', 'admin', 'dentist'],
+      },
+      {
+        label: 'Communications',
+        icon: MessageSquare,
+        href: '/communications',
+        roles: ['owner', 'admin', 'front_desk'],
+      },
+      {
+        label: 'Lab Work',
+        icon: Beaker,
+        href: '/labs',
+        roles: ['owner', 'admin', 'dentist'],
+      },
+      {
+        label: 'Referrals',
+        icon: UserPlus,
+        href: '/referrals',
+        roles: ['owner', 'admin', 'front_desk'],
+      },
+      {
+        label: 'Inventory',
+        icon: Boxes,
+        href: '/inventory',
+        roles: ['owner', 'admin', 'dentist', 'hygienist', 'front_desk'],
+      },
+    ],
   },
   {
-    label: 'Schedule',
-    icon: Calendar,
-    href: '/schedule',
-    roles: ['owner', 'admin', 'dentist', 'front_desk'],
+    title: 'Financial',
+    items: [
+      {
+        label: 'Billing',
+        icon: CreditCard,
+        href: '/billing',
+        roles: ['owner', 'admin', 'front_desk', 'accountant'],
+      },
+      {
+        label: 'Payments',
+        icon: DollarSign,
+        href: '/payments',
+        roles: ['owner', 'admin', 'front_desk', 'accountant'],
+      },
+      {
+        label: 'Insurance',
+        icon: Shield,
+        href: '/insurance',
+        roles: ['owner', 'admin', 'front_desk'],
+      },
+      {
+        label: 'Reports & Analytics',
+        icon: BarChart3,
+        href: '/reports',
+        roles: ['owner', 'admin', 'accountant'],
+      },
+    ],
   },
   {
-    label: 'Dental Chart',
-    icon: Stethoscope,
-    href: '/chart',
-    roles: ['owner', 'admin', 'dentist'],
-  },
-  {
-    label: 'Treatment Plans',
-    icon: ClipboardList,
-    href: '/treatment-plans',
-    roles: ['owner', 'admin', 'dentist'],
-  },
-  {
-    label: 'Clinical Notes',
-    icon: FileText,
-    href: '/notes',
-    roles: ['owner', 'admin', 'dentist'],
-  },
-  {
-    label: 'Billing',
-    icon: CreditCard,
-    href: '/billing',
-    // accountant (2026-09): finance staff own billing; no clinical access.
-    roles: ['owner', 'admin', 'front_desk', 'accountant'],
-  },
-  {
-    label: 'Reports',
-    icon: BarChart3,
-    href: '/reports',
-    roles: ['owner', 'admin', 'accountant'],
-  },
-  {
-    label: 'Revenue',
-    icon: BarChart3,
-    href: '/revenue',
-    roles: ['owner', 'admin', 'accountant'],
-  },
-  {
-    label: 'Online Booking',
-    icon: Calendar,
-    href: '/online-booking',
-    roles: ['owner', 'admin', 'dentist'],
-  },
-  {
-    label: 'Inventory',
-    icon: Boxes,
-    href: '/inventory',
-    roles: ['owner', 'admin', 'dentist', 'hygienist', 'front_desk'],
-  },
-  {
-    label: 'Documents',
-    icon: FileText,
-    href: '/documents',
-    roles: ['owner', 'admin', 'dentist', 'hygienist', 'front_desk'],
-  },
-  {
-    label: 'Marketing',
-    icon: Megaphone,
-    href: '/marketing',
-    roles: ['owner', 'admin', 'dentist', 'hygienist', 'front_desk'],
-  },
-  {
-    label: 'Enterprise HQ',
-    icon: Building2,
-    href: '/enterprise/hq',
-    roles: ['group_owner', 'group_admin'],
-  },
-  {
-    label: 'Platform Console',
-    icon: Server,
-    href: '/platform/console',
-    // super_admin (2026-09): SaaS operator console — cross-tenant by design.
-    roles: ['super_admin'],
-  },
-  {
-    label: 'Settings',
-    icon: Settings,
-    href: '/settings',
-    roles: ['owner', 'admin'],
-  },
-  {
-    label: 'Staff Management',
-    icon: Users,
-    href: '/admin/staff-management',
-    roles: ['owner', 'admin'],
-  },
-  {
-    label: 'Data Migration',
-    icon: Database,
-    href: '/admin/migration',
-    roles: ['owner', 'admin'],
-  },
-  {
-    label: 'Security & Compliance',
-    icon: ShieldCheck,
-    href: '/admin/security',
-    roles: ['owner', 'admin'],
-  },
-  {
-    label: 'Insurance',
-    icon: Shield,
-    href: '/insurance',
-    roles: ['owner', 'admin', 'front_desk'],
-  },
-  {
-    label: 'Imaging',
-    icon: Image,
-    href: '/imaging',
-    roles: ['owner', 'admin', 'dentist', 'hygienist'],
-  },
-  {
-    label: 'Lab Work',
-    icon: Beaker,
-    href: '/labs',
-    roles: ['owner', 'admin', 'dentist'],
-  },
-  {
-    label: 'Referrals',
-    icon: UserPlus,
-    href: '/referrals',
-    roles: ['owner', 'admin', 'front_desk'],
-  },
-  {
-    label: 'Communications',
-    icon: MessageSquare,
-    href: '/communications',
-    roles: ['owner', 'admin', 'front_desk'],
-  },
-  {
-    label: 'Payments',
-    icon: DollarSign,
-    href: '/payments',
-    roles: ['owner', 'admin', 'front_desk'],
-  },
-  {
-    label: 'Subscriptions',
-    icon: CreditCard,
-    href: '/subscriptions',
-    roles: ['owner', 'admin'],
+    title: 'Administration',
+    items: [
+      {
+        label: 'Settings',
+        icon: Settings,
+        href: '/settings',
+        roles: ['owner', 'admin'],
+      },
+      {
+        label: 'Staff Management',
+        icon: Users,
+        href: '/admin/staff-management',
+        roles: ['owner', 'admin'],
+      },
+      {
+        label: 'Subscriptions',
+        icon: CreditCard,
+        href: '/subscriptions',
+        roles: ['owner', 'admin'],
+      },
+      {
+        label: 'Security & Compliance',
+        icon: ShieldCheck,
+        href: '/admin/security',
+        roles: ['owner', 'admin'],
+      },
+      {
+        label: 'Data Migration',
+        icon: Database,
+        href: '/admin/migration',
+        roles: ['owner', 'admin'],
+      },
+      {
+        label: 'Enterprise HQ',
+        icon: Building2,
+        href: '/enterprise/hq',
+        roles: ['group_owner', 'group_admin'],
+      },
+      {
+        label: 'Platform Console',
+        icon: Server,
+        href: '/platform/console',
+        roles: ['super_admin'],
+      },
+    ],
   },
 ];
 
@@ -218,14 +222,20 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: Side
   const location = useLocation();
   const { hasRole } = useAuth();
 
-  const filteredItems = navItems.filter(item => 
-    item.roles.some(role => hasRole(role))
-  );
+  // Filter items in each section based on user role
+  const filteredSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) =>
+        item.roles.some((role) => hasRole(role))
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
 
   const sidebarContent = (isMobile: boolean) => (
-    <>
-      {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Logo Header */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
         {(!collapsed || isMobile) && (
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
@@ -247,78 +257,104 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: Side
         )}
       </div>
 
-      {(!collapsed || isMobile) && <LocationSwitcher />}
+      {/* Practice Location Switcher */}
+      {(!collapsed || isMobile) && (
+        <div className="shrink-0">
+          <LocationSwitcher />
+        </div>
+      )}
 
-      {/* Navigation */}
-      <ScrollArea className="h-[calc(100vh-8rem)]">
+      {/* Scrollable Navigation - Flex-1 so it stops cleanly above the footer */}
+      <ScrollArea className="flex-1 min-h-0">
         <TooltipProvider delayDuration={0}>
-          <nav className="flex flex-col gap-1 p-2">
-            {filteredItems.map((item) => {
-              const isActive = location.pathname === item.href || 
-                              location.pathname.startsWith(item.href + '/');
-              const Icon = item.icon;
+          <nav className="flex flex-col p-2 pb-6 space-y-4">
+            {filteredSections.map((section, idx) => (
+              <div key={section.title} className="space-y-1">
+                {/* Section title (expanded desktop & mobile only) */}
+                {(!collapsed || isMobile) ? (
+                  <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 select-none">
+                    {section.title}
+                  </div>
+                ) : (
+                  idx > 0 && <div className="my-2 border-t border-border/50" />
+                )}
 
-              if (collapsed && !isMobile) {
-                return (
-                  <Tooltip key={item.href} delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <NavLink to={item.href}>
-                        <Button
-                          variant={isActive ? 'secondary' : 'ghost'}
-                          size="icon"
-                          className="w-full"
-                        >
-                          <Icon className="h-5 w-5" />
-                        </Button>
-                      </NavLink>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      {item.label}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
+                {section.items.map((item) => {
+                  const isActive =
+                    location.pathname === item.href ||
+                    location.pathname.startsWith(item.href + '/');
+                  const Icon = item.icon;
 
-              return (
-                <NavLink key={item.href} to={item.href} onClick={isMobile ? onMobileClose : undefined}>
-                  <Button
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className={cn(
-                      "w-full justify-start gap-3",
-                      isActive && "bg-secondary"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.label}
-                  </Button>
-                </NavLink>
-              );
-            })}
+                  if (collapsed && !isMobile) {
+                    return (
+                      <Tooltip key={item.href} delayDuration={0}>
+                        <TooltipTrigger asChild>
+                          <NavLink to={item.href}>
+                            <Button
+                              variant={isActive ? 'secondary' : 'ghost'}
+                              size="icon"
+                              className={cn(
+                                'w-full h-9 mb-1',
+                                isActive && 'bg-primary/10 text-primary font-bold'
+                              )}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </Button>
+                          </NavLink>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <span className="font-medium">{item.label}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  }
+
+                  return (
+                    <NavLink
+                      key={item.href}
+                      to={item.href}
+                      onClick={isMobile ? onMobileClose : undefined}
+                    >
+                      <Button
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className={cn(
+                          'w-full justify-start gap-3 h-9 px-3 text-sm font-medium',
+                          isActive && 'bg-primary/10 text-primary font-semibold'
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </Button>
+                    </NavLink>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </TooltipProvider>
       </ScrollArea>
 
-      {/* Collapse Toggle (desktop only) */}
+      {/* Collapse Toggle Footer (desktop only) - Non-overlapping shrink-0 element */}
       {!isMobile && (
-        <div className="absolute bottom-0 left-0 right-0 border-t p-2">
+        <div className="shrink-0 border-t p-2 bg-card">
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="w-full"
+            className="w-full h-9 text-muted-foreground hover:text-foreground"
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />
             ) : (
               <>
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                Collapse
+                <span>Collapse</span>
               </>
             )}
           </Button>
         </div>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -326,8 +362,8 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: Side
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen border-r bg-card transition-all duration-300 hidden lg:block",
-          collapsed ? "w-16" : "w-64"
+          'fixed left-0 top-0 z-40 h-screen border-r bg-card transition-all duration-300 hidden lg:flex flex-col',
+          collapsed ? 'w-16' : 'w-64'
         )}
       >
         {sidebarContent(false)}
@@ -345,8 +381,8 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: Side
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen w-72 border-r bg-card transition-transform duration-300 lg:hidden",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+          'fixed left-0 top-0 z-50 h-screen w-72 border-r bg-card transition-transform duration-300 lg:hidden flex flex-col',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {sidebarContent(true)}
