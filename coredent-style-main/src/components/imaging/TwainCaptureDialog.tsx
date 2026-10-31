@@ -96,7 +96,7 @@ export function TwainCaptureDialog({
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-purple-100 p-2 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary dark:bg-primary/20">
               <Camera className="h-5 w-5" />
             </div>
             <div>
@@ -111,7 +111,7 @@ export function TwainCaptureDialog({
         <div className="space-y-4 py-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
-              <Cpu className="h-4 w-4 text-purple-600" />
+              <Cpu className="h-4 w-4 text-primary" />
               Workstation Hardware Bridge
             </div>
             <p className="mt-1">
@@ -192,7 +192,6 @@ export function TwainCaptureDialog({
           <Button
             onClick={handleAcquire}
             disabled={isAcquiring}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             {isAcquiring ? (
               <>

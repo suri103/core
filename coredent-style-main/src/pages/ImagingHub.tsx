@@ -40,7 +40,7 @@ export default function ImagingHub() {
       <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center">
         <div>
           <div className="flex items-center gap-3">
-            <ImageIcon className="h-8 w-8 text-purple-600" />
+            <ImageIcon className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-black text-slate-900">Imaging Library</h1>
           </div>
           <p className="mt-2 text-sm text-slate-500">Live patient images stored through the imaging API & DICOM Part 10 sensor bridge.</p>
@@ -48,7 +48,7 @@ export default function ImagingHub() {
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setIsTwainOpen(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
+            className="shadow-sm"
             disabled={!patientId}
           >
             <Camera className="mr-2 h-4 w-4" />
@@ -89,7 +89,7 @@ export default function ImagingHub() {
               </Button>
               <Button
                 variant="outline"
-                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                className="border-primary/20 text-primary hover:bg-primary/5"
                 onClick={() => setIsTwainOpen(true)}
               >
                 <Camera className="mr-2 h-4 w-4" />
@@ -107,18 +107,18 @@ export default function ImagingHub() {
         </Card>
       )}
 
-      <Card className="border-purple-200 bg-purple-50/60">
-        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 text-purple-950">
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 text-foreground">
           <div className="flex items-start sm:items-center gap-3">
-            <Cpu className="h-6 w-6 text-purple-600 flex-shrink-0 mt-1 sm:mt-0" />
+            <Cpu className="h-6 w-6 text-primary flex-shrink-0 mt-1 sm:mt-0" />
             <div>
               <p className="text-sm font-semibold">Sensor Workstation Bridge & DICOM Engine Active</p>
-              <p className="text-xs text-purple-700">Direct streaming enabled for Dexis, Schick 33, Carestream RVG, Vatech EzSensor, Planmeca & TWAIN-compliant devices with native DICOM Part 10 metadata tagging.</p>
+              <p className="text-xs text-muted-foreground">Direct streaming enabled for Dexis, Schick 33, Carestream RVG, Vatech EzSensor, Planmeca & TWAIN-compliant devices with native DICOM Part 10 metadata tagging.</p>
             </div>
           </div>
           <Button
             size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
+            className="flex-shrink-0"
             onClick={() => setIsTwainOpen(true)}
             disabled={!patientId}
           >
@@ -127,7 +127,7 @@ export default function ImagingHub() {
         </CardContent>
       </Card>
 
-      {selectedPatient && <Card className="rounded-2xl border-slate-200 shadow-sm"><CardHeader><CardTitle>{selectedPatient.firstName} {selectedPatient.lastName} — Images</CardTitle></CardHeader><CardContent>{imagesQuery.isLoading && <p className="text-sm text-slate-500">Loading images…</p>}{imagesQuery.isError && <p className="text-sm text-red-600">Unable to load images for this patient.</p>}{!imagesQuery.isLoading && !imagesQuery.isError && imagesQuery.data?.length === 0 && <p className="text-sm text-slate-500">No images uploaded for this patient.</p>}{imagesQuery.data && imagesQuery.data.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{imagesQuery.data.map((image) => <a key={image.id} href={image.fileUrl} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="flex aspect-video items-center justify-center bg-slate-100 text-slate-400">{image.fileUrl ? <img src={image.fileUrl} alt={image.title} className="h-full w-full object-cover" /> : <ImageIcon className="h-8 w-8" />}</div><div className="flex items-center justify-between gap-3 p-4"><div><p className="font-bold text-slate-800 group-hover:text-purple-600">{image.title}</p><p className="text-xs text-slate-500">{image.category} · {image.captureDate ? new Date(image.captureDate).toLocaleDateString() : 'Undated'}</p></div></div></a>)}</div>}</CardContent></Card>}
+      {selectedPatient && <Card className="rounded-2xl border-slate-200 shadow-sm"><CardHeader><CardTitle>{selectedPatient.firstName} {selectedPatient.lastName} — Images</CardTitle></CardHeader><CardContent>{imagesQuery.isLoading && <p className="text-sm text-slate-500">Loading images…</p>}{imagesQuery.isError && <p className="text-sm text-red-600">Unable to load images for this patient.</p>}{!imagesQuery.isLoading && !imagesQuery.isError && imagesQuery.data?.length === 0 && <p className="text-sm text-slate-500">No images uploaded for this patient.</p>}{imagesQuery.data && imagesQuery.data.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{imagesQuery.data.map((image) => <a key={image.id} href={image.fileUrl} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="flex aspect-video items-center justify-center bg-slate-100 text-slate-400">{image.fileUrl ? <img src={image.fileUrl} alt={image.title} className="h-full w-full object-cover" /> : <ImageIcon className="h-8 w-8" />}</div><div className="flex items-center justify-between gap-3 p-4"><div><p className="font-bold text-slate-800 group-hover:text-primary">{image.title}</p><p className="text-xs text-slate-500">{image.category} · {image.captureDate ? new Date(image.captureDate).toLocaleDateString() : 'Undated'}</p></div></div></a>)}</div>}</CardContent></Card>}
 
       <TwainCaptureDialog
         open={isTwainOpen}
