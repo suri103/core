@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { schedulingApi } from '@/services/schedulingApi';
 import type { ScheduleAppointment, ScheduleProvider } from '@/types/scheduling';
 import type { Chair, AppointmentTypeConfig } from '@/types/clinic';
@@ -18,16 +18,48 @@ export function useScheduling() {
   // only the most recent request may commit its results, otherwise a slow
   // stale week can overwrite the currently displayed one.
   const loadSequenceRef = useRef(0);
+  const metadataLoadedRef = useRef(false);
 
-  // Formatted date string
-  const formattedDate = currentDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  // Formatted date string adapting to current view
+  const formattedDate = useMemo(() => {
+    if (view === 'month') {
+      return currentDate.toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric',
+      });
+    }
+    if (view === 'week') {
+      const day = currentDate.getDay();
+      const start = new Date(currentDate);
+      start.setDate(currentDate.getDate() - day);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
 
-  const loadData = useCallback(async () => {
+      const sameMonth = start.getMonth() === end.getMonth();
+      const sameYear = start.getFullYear() === end.getFullYear();
+
+      if (sameMonth && sameYear) {
+        const monthName = start.toLocaleDateString('en-US', { month: 'short' });
+        return `${monthName} ${start.getDate()} – ${end.getDate()}, ${start.getFullYear()}`;
+      } else if (sameYear) {
+        const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
+        const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+        return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
+      } else {
+        const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        return `${startStr} – ${endStr}`;
+      }
+    }
+    return currentDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }, [currentDate, view]);
+
+  const loadData = useCallback(async (forceReload = false) => {
     const requestId = ++loadSequenceRef.current;
     setIsLoading(true);
     setError(null);
@@ -55,27 +87,41 @@ export function useScheduling() {
         endDate.setHours(23, 59, 59, 999);
       }
 
-      const [chairsData, providersData, typesData, appointmentsData] = await Promise.all([
-        schedulingApi.getChairs(),
-        schedulingApi.getProviders(),
-        schedulingApi.getAppointmentTypes(),
-        schedulingApi.getAppointments(startDate, endDate),
-      ]);
+      if (!metadataLoadedRef.current || forceReload) {
+        const [chairsData, providersData, typesData, appointmentsData] = await Promise.all([
+          schedulingApi.getChairs(),
+          schedulingApi.getProviders(),
+          schedulingApi.getAppointmentTypes(),
+          schedulingApi.getAppointments(startDate, endDate),
+        ]);
 
-      // A newer request started while this one was in flight — discard it.
-      if (requestId !== loadSequenceRef.current) return;
+        if (requestId !== loadSequenceRef.current) return;
 
-      setChairs(chairsData);
-      setProviders(providersData);
-      setAppointmentTypes(typesData);
+        setChairs(chairsData);
+        setProviders(providersData);
+        setAppointmentTypes(typesData);
+        metadataLoadedRef.current = true;
 
-      const parsedAppointments = appointmentsData.map((appt) => ({
-        ...appt,
-        startTime: appt.startTime instanceof Date ? appt.startTime : new Date(appt.startTime),
-        endTime: appt.endTime instanceof Date ? appt.endTime : new Date(appt.endTime),
-        duration: typeof appt.duration === 'number' ? appt.duration : parseInt(appt.duration as any, 10) || 30
-      }));
-      setAppointments(parsedAppointments);
+        const parsedAppointments = appointmentsData.map((appt) => ({
+          ...appt,
+          startTime: appt.startTime instanceof Date ? appt.startTime : new Date(appt.startTime),
+          endTime: appt.endTime instanceof Date ? appt.endTime : new Date(appt.endTime),
+          duration: typeof appt.duration === 'number' ? appt.duration : parseInt(appt.duration as any, 10) || 30
+        }));
+        setAppointments(parsedAppointments);
+      } else {
+        const appointmentsData = await schedulingApi.getAppointments(startDate, endDate);
+
+        if (requestId !== loadSequenceRef.current) return;
+
+        const parsedAppointments = appointmentsData.map((appt) => ({
+          ...appt,
+          startTime: appt.startTime instanceof Date ? appt.startTime : new Date(appt.startTime),
+          endTime: appt.endTime instanceof Date ? appt.endTime : new Date(appt.endTime),
+          duration: typeof appt.duration === 'number' ? appt.duration : parseInt(appt.duration as any, 10) || 30
+        }));
+        setAppointments(parsedAppointments);
+      }
     } catch (cause) {
       if (requestId !== loadSequenceRef.current) return;
       const nextError = cause instanceof Error ? cause : new Error('Failed to load scheduling data');

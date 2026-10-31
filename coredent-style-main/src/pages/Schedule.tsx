@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { cn } from '@/lib/utils';
 
 // Fire-and-forget automation triggers: the clinical action already succeeded,
 // so a webhook failure must not surface as an unhandled rejection. Log it and
@@ -309,7 +310,7 @@ export default function Schedule() {
     setIsAppointmentDialogOpen(true);
   }, []);
 
-  if (isLoading && appointments.length === 0) {
+  if (isLoading && chairs.length === 0) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-20 w-full" />
@@ -331,6 +332,7 @@ export default function Schedule() {
         onDateSelect={goToDate}
         onNewAppointment={handleNewAppointment}
         onOpenSearch={() => setIsPatientSearchOpen(true)}
+        isLoading={isLoading}
       />
 
       {error && (
@@ -343,7 +345,17 @@ export default function Schedule() {
         </Alert>
       )}
 
-      <div className="flex-1 mt-4 overflow-hidden border rounded-lg bg-card">
+      <div
+        className={cn(
+          "flex-1 mt-4 overflow-hidden border rounded-lg bg-card relative transition-opacity duration-200",
+          isLoading && chairs.length > 0 ? "opacity-75" : "opacity-100"
+        )}
+      >
+        {isLoading && chairs.length > 0 && (
+          <div className="absolute top-0 left-0 right-0 z-20 h-1 bg-muted/40 overflow-hidden">
+            <div className="h-full bg-primary animate-pulse w-full" />
+          </div>
+        )}
         {view === 'day' && (
           <DayView
             date={currentDate}
